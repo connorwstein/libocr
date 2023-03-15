@@ -287,6 +287,8 @@ func (pace *pacemakerState) restoreStateFromDatabase() {
 	pace.logger.Info("Restored state from database", commontypes.LogFields{
 		"epoch":  pace.e,
 		"leader": pace.l,
+	  "ne": pace.ne, 
+    "receivedEpoch": pace.newepoch,
 	})
 }
 
@@ -406,6 +408,7 @@ func (pace *pacemakerState) eventChangeLeader() {
 }
 
 func (pace *pacemakerState) messageNewepoch(msg MessageNewEpoch, sender commontypes.OracleID) {
+	pace.logger.Info("Pacemaker: messageNewEpoch", commontypes.LogFields{"sender": sender, "epoch": msg.Epoch, "existingEpoch": pace.newepoch[sender]})
 	if pace.newepoch[sender] < msg.Epoch {
 		pace.newepoch[sender] = msg.Epoch
 		pace.persist()
@@ -426,6 +429,8 @@ func (pace *pacemakerState) messageNewepoch(msg MessageNewEpoch, sender commonty
 
 	// upon |{p_j ∈ P | newepoch[j] > e}| > 2f do
 	{
+		pace.logger.Info("Pacemaker: candidateEpochs", commontypes.LogFields{
+                       "newepoch": pace.newepoch, "e": pace.e, "F": pace.config.F})
 		candidateEpochs := sortedGreaterThan(pace.newepoch, pace.e)
 		if len(candidateEpochs) > 2*pace.config.F {
 			// ē ← max {e' | {p_j ∈ P | newepoch[j] ≥ e' } > 2f}
