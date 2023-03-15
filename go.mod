@@ -1,4 +1,4 @@
-module github.com/connowrstein/libocr
+module github.com/connorwstein/libocr
 
 go 1.18
 
